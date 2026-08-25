@@ -1,8 +1,52 @@
 # Ghost Time Series Training Modules
 
-Project of `AIL303m` FPT University Da Nang. For conference paper.
+Official repository for time series imputation research by the AI Department at FPT University Da Nang.
 
-## ⚡Models Aliases
+---
+
+## 📄 Papers & Publications
+
+If you use this repository or dataset in your research, please refer to our published papers:
+
+### 1. Main Paper
+* **Title:** *Investigating 1DCNN Architectures for Improving Univariate Time Series Imputation*
+* **Authors:** Thieu-Quang Dinh, Ngoc-Huy Dao, Quang-Minh Doan, Thi-Minh-Thu Le, Thi-Thu-Hong Phan
+* **Conference / Book:** *International Conference on Digital Technologies and Applications (ICDTA)* / Springer Lecture Notes in Networks and Systems
+* **DOI:** [10.1007/978-3-032-06061-7_6](https://doi.org/10.1007/978-3-032-06061-7_6)
+
+### 2. Related Paper
+* **Title:** *WBDI Approach for Univariate Time Series Imputation*
+* **Authors:** Ngoc-Huy Dao, Quang-Minh Doan, Thieu-Quang Dinh, Quan-Bao Nguyen, Thi-Thu-Hong Phan
+* **Journal:** *Informatica* (Vol 48, 2024)
+
+---
+
+## 📌 Citation
+
+When using this code or referencing our work, please cite our paper:
+
+### BibTeX
+```bibtex
+@inbook{Dinh2026,
+  author    = {Dinh, Thieu-Quang and Dao, Ngoc-Huy and Doan, Quang-Minh and Le, Thi-Minh-Thu and Phan, Thi-Thu-Hong},
+  title     = {Investigating 1DCNN Architectures for Improving Univariate Time Series Imputation},
+  booktitle = {Digital Technologies and Applications},
+  year      = {2026},
+  publisher = {Springer Nature Switzerland},
+  address   = {Cham},
+  doi       = {10.1007/978-3-032-06061-7_6},
+  url       = {https://doi.org/10.1007/978-3-032-06061-7_6}
+}
+```
+
+### Standard Citation
+> T.-Q. Dinh, N.-H. Dao, Q.-M. Doan, T.-M.-T. Le, and T.-T.-H. Phan, "Investigating 1DCNN Architectures for Improving Univariate Time Series Imputation," in *Digital Technologies and Applications*, Springer, 2026, pp. 71–81. DOI: [10.1007/978-3-032-06061-7_6](https://doi.org/10.1007/978-3-032-06061-7_6).
+
+---
+
+## 💻 Code & Usage
+
+### ⚡ Model Aliases
 
 - `lr` : Linear Regression
 - `knn` : K-Nearest Neighbor
@@ -24,6 +68,8 @@ Project of `AIL303m` FPT University Da Nang. For conference paper.
 - `transformer` : Transformer
 - `kan`: Kolmogorov-Arnold Network
 
+---
+
 ## 📖 Documentation
 
 ### Training on Local
@@ -39,19 +85,19 @@ cd timeseries
 pip install -r requirements.txt
 ```
 
-- Select model to train. On file `ghost.ipynb`
+- Select model to train in notebook `ghost.ipynb`:
 
-```py
-...
+```python
 # Add the model alias on 👇 this list
 MODELS = get_by_aliases(['rf', 'svm'], rf_n_estimators=100)
 # Add model custom parameters .........☝️. Start with prefix of model alias.
 ```
 
-- Add your own model. Create the new file in `modules/models`. In `your_model.py`.
+- Add your own model. Create a new file in `modules/models/your_model.py`:
 
-```py
+```python
 from ._base import BaseModelWrapper
+
 # Define class of your custom model
 class YourModel(BaseModelWrapper):
     # Define the name of your model. This name will display during training or plotting results.
@@ -63,20 +109,19 @@ class YourModel(BaseModelWrapper):
         ...
 
     def fit(self, generator, x, y):
-        # If `is_generate` is False, this method will received x, y as `np.NDArray`.
-        # If `is_generate` is True, this method will received generator as `WindowGenerator`.
-        # The window generator methods is described below.
+        # If `is_generate` is False, this method will receive x, y as `np.NDArray`.
+        # If `is_generate` is True, this method will receive generator as `WindowGenerator`.
         ...
 
     def predict(self, generator, x):
-        # If `is_generate` is False, this method will received x as `np.NDArray`.
-        # If `is_generate` is True, this method will received generator as `WindowGenerator`.
+        # If `is_generate` is False, this method will receive x as `np.NDArray`.
+        # If `is_generate` is True, this method will receive generator as `WindowGenerator`.
         ...
 
     def forecast(self, x, steps):
         # The forecast function is used to forecast the future values.
         # The x is the last window of data as `np.NDArray`.
-        # The steps is how many data must be generated.
+        # The steps is how many data points to generate.
         ...
 
     def summary(self):
@@ -84,11 +129,13 @@ class YourModel(BaseModelWrapper):
         ...
 
     def reset(self):
-        # The model will run over more than one time. Using the reset method to reset the parameters of your model for the new dataset.
+        # Reset the parameters of your model for a new dataset.
         ...
 ```
 
-```py
+- Add to `modules/models/__init__.py` and `modules/alias.py` for model aliases:
+
+```python
 # Adding to `modules/models/__init__.py` for easy importing
 from .your_model import YourModel
 
@@ -96,70 +143,68 @@ from .your_model import YourModel
 def get_by_alias(alias, **kwargs):
     ...
     if alias == 'your_defined_alias':
-        # By passing kwargs into your model. You will use model custom paramerter on above.
         return YourModel(**filter_and_format('your_defined_alias', kwargs))
     ...
 ```
 
-- Using `WindowGenerator`. Window Generator is the dynamic generator for creating TimeSeries dataset with window size and batch size.
+- Using `WindowGenerator`: Dynamic generator for creating time series datasets with window size and batch size.
 
-```py
+```python
 generator = WindowGenerator(df, WINDOW_SIZE, BATCH_SIZE)
-# Using slice index to get the batch of data has been splited by window.
+# Using slice index to get the batch of data split by window.
 generator[0] # The output shape is (batch_size, window_size, n_features)
-# Using `generate()` to generate full data without using batch.
+
+# Using `generate()` to generate full data without using batches.
 generator.generate() # The output shape is (data_length, window_size, n_features)
 ```
 
-```py
-# You can use as iterator to loop throught data with batch size
+```python
+# Iterate through data with batch size
 for data_with_batch in generator:
     print(data_with_batch.shape) # Output: (batch_size, window_size, n_features)
 ```
 
-- Define custom preprocessing
+- Define custom preprocessing:
 
-```py
+```python
 from modules.utils.preprocessing import Plugins
+
 # Create class of custom preprocessing
 class YourPreprocessing(Plugins):
     def __init__(self): ...
 
-    # Define your algorithm for do preprocessing
-    # `x` is `np.NDArray`
+    # Define your algorithm for preprocessing (`x` is `np.NDArray`)
     def flow(self, x): ...
 
-    # Define your algorithm for reverse back to original
-    # `x` is `np.NDArray`
+    # Define your algorithm for reversing back to original (`x` is `np.NDArray`)
     def reverse_flow(self, x): ...
 ```
 
-```py
+```python
 # Add your preprocessing into use
 preprocessor = Preprocessing()
 preprocessor.add_plugin(YourPreprocessing())
 preprocessor.flow(dataframe)
 ```
 
-- Custom Training callback
+- Custom Training Callbacks:
 
-```py
+```python
 from modules.utils.callbacks import Callback
+
 # Define your custom callback
 class YourCallback(Callback):
     def __init__(self):
         super().__init__()
 
-    # Define algorithm after model predicting results
-    # Both `y_true` and `y_pred` are `np.NDArray`
+    # Algorithm after model predicting results (`y_true` and `y_pred` are `np.NDArray`)
     def after_predict(self, y_true, y_pred): ...
 
-    # Define algorithm after model forecasting results
-    # Both `y_true` and `y_fore` are `np.NDArray`
+    # Algorithm after model forecasting results (`y_true` and `y_fore` are `np.NDArray`)
     def after_forecast(self, y_true, y_fore): ...
 ```
 
-```py
+```python
 # Using callback
 your_callback = YourCallback()
 trainer.train(generator, callbacks=[your_callback])
@@ -167,26 +212,25 @@ trainer.train(generator, callbacks=[your_callback])
 
 ### Training on Colab
 
-👉 [Phantom Colab](https://colab.research.google.com/drive/1hokWxs8VnsdT_CMmTas-qHiO9KuARAVx?usp=sharing)
+👉 [Phantom Colab Notebook](https://colab.research.google.com/drive/1hokWxs8VnsdT_CMmTas-qHiO9KuARAVx?usp=sharing)
 
 ### Training with Docker
 
-- Build Docker image. Make sure you have **Docker** installed.
+- Build Docker image (make sure **Docker** is installed):
 
 ```sh
 docker build -t ts-cullinan .
 ```
 
-- Start Docker desktop or docker deamon.
-
+- Start Docker desktop or daemon.
 - Config and run file `spectre.py`.
+
+---
 
 ## 🕹️ Contributors
 
-<div style="display: flex;">
-<a href="https://www.facebook.com/tony2802.D" style="display:flex;flex-direction:column;align-items:center;margin-right:20px"><img src="https://scontent.fsgn2-7.fna.fbcdn.net/v/t39.30808-6/344377948_775593660613596_1216234811214449721_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=5f2048&_nc_ohc=oFEidQ80HdEAX8RZz7j&_nc_ht=scontent.fsgn2-7.fna&oh=00_AfAVCgJwlxQs1AYI0t4fYGGvwP3N1rQL06vBJ26aHpvoDw&oe=653DBD8E" style="border-radius: 50%; width:50px"/>Đào Ngọc Huy</a>
-<a href="https://www.facebook.com/ming.doan/" style="display:flex;flex-direction:column;align-items:center;margin-right:20px"><img src="https://scontent.fsgn2-3.fna.fbcdn.net/v/t39.30808-6/394525696_1124443801865486_8739919297837929580_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=h4ImwNoefIYAX9-DM-K&_nc_ht=scontent.fsgn2-3.fna&oh=00_AfA14s5v0VBvrVYxB_5scKkPcLOVzIZGdV5uGbvfy0V1Kw&oe=653E6599" style="border-radius: 50%; width:50px"/>Đoàn Quang Minh</a>
-<a href="https://www.facebook.com/quang.dinh.90813236" style="display:flex;flex-direction:column;align-items:center;margin-right:20px"><img src="https://scontent.fsgn2-4.fna.fbcdn.net/v/t39.30808-6/290879595_1475124582919075_7632900938360005513_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=RQbiD4jXOvkAX9c3ml4&_nc_ht=scontent.fsgn2-4.fna&oh=00_AfDvCjxb3QqlknIT6a2aKtPskKZIJo4X5zyZZtw1Ip-3RQ&oe=653EA896" style="border-radius: 50%; width:50px"/>Đinh Thiều Quang</a>
-<a href="https://www.facebook.com/profile.php?id=100037350121063" style="display:flex;flex-direction:column;align-items:center;margin-right:20px"><img src="https://scontent.fsgn2-4.fna.fbcdn.net/v/t39.30808-6/325673426_907218923604608_154990822737406390_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=5f2048&_nc_ohc=0Wuogv9WZnEAX-jQ9VW&_nc_ht=scontent.fsgn2-4.fna&oh=00_AfCQeso1galiGrrMq2OBr5EGKSyGYXs283m3d81ZE3In1Q&oe=653DEDE5" style="border-radius: 50%; width:50px"/>
-Nguyễn Quân Bảo</a>
-</div>
+* **Đào Ngọc Huy** ([Facebook](https://www.facebook.com/tonydnh43))
+* **Đoàn Quang Minh** ([Facebook](https://www.facebook.com/ming.doan/))
+* **Đinh Thiều Quang** ([Facebook](https://www.facebook.com/quang.dinh.90813236))
+* **Nguyễn Quân Bảo** ([Facebook](https://www.facebook.com/profile.php?id=100037350121063))
+* **Lê Thị Minh Thư** ([Facebook](https://www.facebook.com/minhthu.34))
