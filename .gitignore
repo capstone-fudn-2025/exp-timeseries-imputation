@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*results*/
+*metrics*/
+
+# DO NOT PUSH ghost.ipynb due to its conflict
+*.ipynb
